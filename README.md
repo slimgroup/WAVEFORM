@@ -6,7 +6,7 @@ Waveform is a flexible and modular approach to solving PDE-constrained inverse p
 - scales easily from small 2D problems to large-scale 3D problems with *minimal* code modifications
 - allow users to integrate their own preconditioners, stencils, linear solvers, etc. easily in to the entire inversion framework
 
-For more details, as well as the full design of the software, see (http://arxiv.org). All functions are written by Curt Da Silva, unless indicated otherwise in the function documentation.
+For more details, as well as the full design of the software, see (https://arxiv.org/abs/1703.09268). All functions are written by Curt Da Silva, unless indicated otherwise in the function documentation.
 
 # Requirements
 Waveform requires Matlab (tested on R2015b), the Parallel Toolbox (for using parallelism), and the following packages:
