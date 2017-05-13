@@ -1,4 +1,4 @@
-#WAVEFORM - a softWAre enVironmEnt For nOnlinear inveRse probleMs
+# WAVEFORM - a softWAre enVironmEnt For nOnlinear inveRse probleMs
 
 Waveform is a flexible and modular approach to solving PDE-constrained inverse problems that aims to
 - accurately reflect the underlying mathematics of the problem

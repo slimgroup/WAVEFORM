@@ -35,10 +35,17 @@ function [D,J] = F3d(m,Q,model,params)
     end
     Ds = cell(length(freqs),1);
     ifreqs = find(freqs);
+    nlabs=parpool_size();
+    if nlabs==0
+        PDEf = @PDEfunc;
+    else
+        PDEf = @PDEfunc_dist;
+    end
     for i=1:length(ifreqs)   
         sf_mask_f = false(nsrc,nfreq);
         sf_mask_f(:,ifreqs(i)) = sf_mask(:,ifreqs(i));
-        Ds{i} = PDEfunc_dist(PDEopts.FORW_MODEL,m,Q,[],[],model,params_loc,sf_mask_f);
+        
+        Ds{i} = PDEf(PDEopts.FORW_MODEL,m,Q,[],[],model,params_loc,sf_mask_f);
     end
     
     % Not the most efficient way to do this, but you only model once (yomo)
