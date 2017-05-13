@@ -122,7 +122,7 @@ function [obj,vout,comp_grid] = misfit_setup(v0,Q,D,model,params)
     comp_grid.to_fine = to_fine;
     
     % Parse data, either we get a function handle pointing to the paths of the data or the full data itself
-    if isdistributed(D) || iscodistributed(D)
+    if ~is_var_local(D)
         if numel(D)==nrec*nsrc*length(model.freq)
             nf = length(model.freq);
         elseif numel(D)==nrec*nsrc*nfreq_requested
@@ -136,9 +136,7 @@ function [obj,vout,comp_grid] = misfit_setup(v0,Q,D,model,params)
         if sum(vec(sf_mask)) ~= numel(sf_mask)
             if size(Dobs,2)==nfreq*nsrc
                 Dobs = Dobs(:,vec(sf_mask));
-                spmd,
-                    Dobs = redistribute(Dobs,codistributor1d(2,codistributor1d.unsetPartition,size(Dobs)));
-                end 
+                Dobs = redistribute_data(Dobs);
             else
                 assert(size(Dobs,2)==nsrc,'Input data must be nrec x nfreq*nsrc or nrec x nsrc');
             end            
@@ -169,7 +167,12 @@ function [f,g,h] = misfit_func(m,Q,D,model,params,I)
     end
 
     mode_2d = length(model.n)==2 || model.n(3)==1;
-
+    distributed_mode = ~is_var_local(D);
+    if distributed_mode
+        PDEf = @PDEfunc_dist;
+    else
+        PDEf = @PDEfunc;
+    end
     % Source/freq subsampling can only be done within the current
     % (fixed) set of source/freq indices
     Ifixed = find(vec(params.srcfreqmask));
@@ -178,7 +181,7 @@ function [f,g,h] = misfit_func(m,Q,D,model,params,I)
     sfmask(Ifixed(I)) = true; 
     params.srcfreqmask = sfmask;
     D = D(:,I);
-    if isdistributed(D)
+    if distributed_mode
         spmd
             D = redistribute(D,codistributor1d(2));
         end
@@ -195,29 +198,45 @@ function [f,g,h] = misfit_func(m,Q,D,model,params,I)
         end
     else    
         if nargout== 1
-            f = PDEfunc_dist(PDEopts.OBJ,m,Q,[],D,model,params,sfmask);
+            f = PDEf(PDEopts.OBJ,m,Q,[],D,model,params,sfmask);
         else
             if nargout == 2
-                [f,g] = PDEfunc_dist(PDEopts.OBJ,m,Q,[],D,model,params,sfmask);
+                [f,g] = PDEf(PDEopts.OBJ,m,Q,[],D,model,params,sfmask);
             else
                 switch params.hessian
                   case {PDEopts.HESS_DIAG_SHIN01,PDEopts.HESS_DIAG_ENCODE,PDEopts.HESS_GN_DIAG}
-                    [f,g,h] = PDEfunc_dist(PDEopts.OBJ,m,Q,[],D,model,params,sfmask);
+                    [f,g,h] = PDEf(PDEopts.OBJ,m,Q,[],D,model,params,sfmask);
                     h = c*h;
                   otherwise
-                    [f,g] = PDEfunc_dist(PDEopts.OBJ,m,Q,[],D,model,params,sfmask);
+                    [f,g] = PDEf(PDEopts.OBJ,m,Q,[],D,model,params,sfmask);
                     switch params.hessian
                       case PDEopts.HESS_GN
                         if mode_2d
-                            h = c*oppHGN(m,Q,model,params);
+                            if distributed_mode
+                                h = c*oppHGN(m,Q,model,params);
+                            else
+                                h = c*opHGN(m,Q,model,params);    
+                            end
                         else
-                            h = c*oppHGN3d(m,Q,model,params);
+                            if distributed_mode
+                                h = c*oppHGN3d(m,Q,model,params);
+                            else
+                                h = c*opHGN3d(m,Q,model,params);
+                            end
                         end
                       case PDEopts.HESS
                         if mode_2d
-                            h = c*oppH(m,Q,D,model,params);
+                            if distributed_mode
+                                h = c*oppH(m,Q,D,model,params);
+                            else
+                                h = c*opH(m,Q,D,model,params);
+                            end
                         else
-                            h = c*oppH3d(m,Q,D,model,params);
+                            if distributed_mode                                
+                                h = c*oppH3d(m,Q,D,model,params);
+                            else
+                                h = c*opH3d(m,Q,D,model,params);
+                            end
                         end
                     end    
                 end                
@@ -228,3 +247,4 @@ function [f,g,h] = misfit_func(m,Q,D,model,params,I)
     end
     
 end
+

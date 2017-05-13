@@ -63,7 +63,7 @@ nout = nargout;
 % Sanity checks
 if ~any(ismember(func,modes)), error('Must choose a preset function.'); end
 if ~isempty(input), assert(~isdistributed(input) && ~iscodistributed(input),'Need non-distributed input.' ); end
-assert(~isdistributed(Q) && ~iscodistributed(Q), 'Need non-distributed source weights');
+assert(is_var_local(Q), 'Need non-distributed source weights');
 
 % Unpack options, reformulate them for further propagation
 if ~isfield(params,'pdefunopts') || ~isa(params.pdefunopts,'PDEopts')    

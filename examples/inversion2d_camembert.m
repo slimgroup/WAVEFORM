@@ -26,25 +26,25 @@ figure;imagesc(x,z,v0 + dv);xlabel('x [m]');ylabel('z [m]');title('velocity [m/s
 %% setup modeling parameters for reflection experiment
 
 % grid
-model.o = o; 
-model.d = d;
-model.n = n;
+model_r.o = o; 
+model_r.d = d;
+model_r.n = n;
 
 % number of points for absorbing boundary
-model.nb = [20 20];
+model_r.nb = [20 20];
 
 % frequencies [5, 10, 15] Hz.
 model_r.freq = [5 10 15]; nfreq = length(model_r.freq);
 
 % Ricker wavelet with peak frequency f0 and phase shift t0
-model.f0 = 10;
-model.t0 = 0;
+model_r.f0 = 10;
+model_r.t0 = 0;
 
 % source and receiver locations
-model.zsrc = 10;
-model.xsrc = 0:100:1000; nsrc = length(model_r.xsrc);
-model.zrec = 10;
-model.xrec = 0:10:1000;  nrec = length(model_r.xrec);
+model_r.zsrc = 10;
+model_r.xsrc = 0:100:1000; nsrc = length(model_r.xsrc);
+model_r.zrec = 10;
+model_r.xrec = 0:10:1000;  nrec = length(model_r.xrec);
 
 % source matrix, each column is a source function defined on the source
 % grid [model.zsrc, model.xsrc].
@@ -54,7 +54,7 @@ Q = speye(nsrc);
 m = 1e6./(v0(:) + dv(:)).^2;
 
 %% create data
-D = F(m,Q,model);
+D = F(m,Q,model_r);
 
 %% inversion
 opts = struct;
@@ -62,7 +62,7 @@ opts.wri = false;
 
 % initial model
 m0 = 1e6./v0(:).^2;
-obj = misfit_setup(m0,Q,D,model,opts);
+obj = misfit_setup(m0,Q,D,model_r,opts);
 
 optim_opts = struct;
 optim_opts.maxIter = 20;

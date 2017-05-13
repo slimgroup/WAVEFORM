@@ -327,15 +327,11 @@ comp_grid.pml = npml;
 
 % Compute + assign the preconditioner to the spot operator
 if isa(precond,'char')
-switch precond
-  case LinSolveOpts.PREC_MLCR
-    precond = ML_CRMN(H,v,comp_grid,model,freq,opts);
+switch precond  
   case LinSolveOpts.PREC_MLGMRES
     precond = ML_GMRES(H,v,comp_grid,model,freq,opts);    
   case LinSolveOpts.PREC_SHIFTLAP
-    precond = SLap_multigrid(v,comp_grid,model,freq,opts);
-  case LinSolveOpts.PREC_CALANDRA12
-    precond = ML_CALANDRA12(H,v,comp_grid,model,freq,opts);
+    precond = SLap_multigrid(v,comp_grid,model,freq,opts);  
   otherwise 
     precond = [];
 end

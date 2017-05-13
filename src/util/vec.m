@@ -17,7 +17,7 @@ function output = vec(input)
 % code. If you do not agree to these terms you may not use this
 % software.
 
-if isdistributed(input)
+if license('test','parallel_toolbox') && isdistributed(input)
     output = pSPOT.utils.distVectorize(input);
 else
     output = input(:);
