@@ -11,7 +11,21 @@ For more details, as well as the full design of the software, see (https://arxiv
 # Requirements
 Waveform requires Matlab (tested on R2015b), the Parallel Toolbox (for using parallelism), and the following packages:
 
-- SPOT: A linear-operator toolbox for Matlab, available at https://github.com/mpf/spot
+- SPOT: A linear-operator toolbox for Matlab, available at https://github.com/curtd/spot
+  - *Note* if you're using the original SPOT toolbox from https://github.com/mpf/spot, you'll need to modify the first line of the file  
+  ```matlab
+    [SPOT directory]/@opSpot/opSpot.m
+  ```
+  by replacing
+  ```matlab
+  classdef opSpot
+  ```
+
+  with
+  ```matlab
+  classdef (HandleCompatible) opSpot
+  ```
+
 - pSPOT: Parallel extensions to SPOT, available at https://github.com/slimgroup/pSPOT
 
 Optional packages, for running certain examples
