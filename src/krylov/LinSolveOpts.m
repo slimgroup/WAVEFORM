@@ -40,14 +40,13 @@ classdef LinSolveOpts < dynamicprops & matlab.mixin.Copyable
         SOLVE_BACKSLASH= 'solve_backslash';
         SOLVE_JACOBI   = 'solve_jacobi';
         PREC_KACZSWP   = 'prec_kaczsweep';
-        PREC_MLCR      = 'prec_mlcr';
-        PREC_MLCG      = 'prec_mlcg';
-        PREC_T2V       = 'prec_t2v';
         PREC_IDENTITY  = 'prec_identity';        
         PREC_BICGSTAB  = 'prec_bicgstab';
         PREC_MLGMRES   = 'prec_mlgmres';
         PREC_SHIFTLAP  = 'prec_shiftlap';
         PREC_CALANDRA12 = 'prec_calandra12';
+        PREC_VGMRES    = 'prec_vgmres';
+
     end
     
     methods

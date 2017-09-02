@@ -332,6 +332,8 @@ switch precond
     precond = ML_GMRES(H,v,comp_grid,model,freq,opts);    
   case LinSolveOpts.PREC_SHIFTLAP
     precond = SLap_multigrid(v,comp_grid,model,freq,opts);  
+  case LinSolveOpts.PREC_VGMRES
+    precond = V_GMRES(H,v,comp_grid,model,freq,opts);
   otherwise 
     precond = [];
 end
