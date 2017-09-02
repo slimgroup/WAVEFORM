@@ -25,8 +25,10 @@
 % code. If you do not agree to these terms you may not use this
 % software.
 % 
-
 function [x,res,hst] = FGMRES(A,b,x,par)
+
+% Parse parameters
+%--------------------------------------------------
 
 tol = check_field(par,'tol',1e-6);
 maxinnerit = check_field(par,'maxinnerit',10);
@@ -41,6 +43,8 @@ if isa(P,'opSpot')
 else precond = P; 
 end
 
+% Initialize stopping criterion
+%--------------------------------------------------
 % Compute initial residual
 if nnz(x)~=0
    r = b - A*x;
@@ -57,54 +61,42 @@ hst        = 1; % History of quasi-residuals - first is always one
 ej=zeros(maxinnerit+1,1);
 ej(1) = 1;   
 res = [];
-
+V = zeros(N,maxinnerit);
+if precond_dirac
+    Z = zeros(N,0);
+else
+    Z = zeros(N,maxinnerit);
+end
+H = zeros(maxinnerit+1,maxinnerit);
+y = zeros(maxinnerit,1);
+% Cycle loop
+%--------------------------------------------------
 while hst(end)>tol && floor(it_counter/maxinnerit)<maxit
     k=1;
     
-    if precond_dirac
-        Z = zeros(N,maxinnerit);
-    else
-        Z = zeros(N,maxinnerit);
-        V = zeros(N,maxinnerit+1);
-    end
-    
-    H=zeros(maxinnerit+1,maxinnerit);
-
-    y=zeros(maxinnerit,1);    
+    %Initialization of Variables    
     beta = norm(r);
-    if precond_dirac
-        Z(:,1)=r/beta;
-    else
-        V(:,1)=r/beta;
-    end    
-        
-    % Inner iteration loop
+    V(:,1)= r/beta;
+
+    % Iteration loop
+    %---------------
     while (k<=maxinnerit) && (hst(end)>tol)
         
         % Apply preconditioner
-        if ~precond_dirac
-            Z(:,k)=precond(V(:,k));
+        if precond_dirac
+            w = A*V(:,k);
+        else
+            Z(:,k)=precond(V(:,k));            
+            w=A*Z(:,k);                    
         end
-        % Arnoldi
-        %----------
-        w=A*Z(:,k);
+        H(1:k,k)=V(:,1:k)'*w;
+        w = w-V(:,1:k)*H(1:k,k);
 
-        % Classical Gram-Schmidt
-        if precond_dirac
-            H(1:k,k)=Z(:,1:k)'*w;
-            w = w-Z(:,1:k)*H(1:k,k);
-        else
-            H(1:k,k)=V(:,1:k)'*w;  
-            w=w-V(:,1:k)*H(1:k,k);
-        end
-        
         H(k+1,k)=norm(w);
-        if precond_dirac
-            Z(:,k+1) = w/H(k+1,k);
-        else
+        if k<maxinnerit
             V(:,k+1) = w/H(k+1,k);
         end
-        
+
         % Solve least squares and update solution  
         y(1:k,1)=H(1:k+1,1:k)\(beta*ej(1:k+1,1)); 
         
@@ -112,14 +104,17 @@ while hst(end)>tol && floor(it_counter/maxinnerit)<maxit
         k = k + 1;
         it_counter = it_counter+1;        
     end
-   
-    x = x+Z(:,1:k-1)*y(1:k-1,1); 
+    if precond_dirac
+        x = x+V(:,1:k-1)*y(1:k-1,1); 
+    else
+        x = x+Z(:,1:k-1)*y(1:k-1,1); 
+    end
     r = b - A*x;
     if output_freq > 0 && mod(ceil(it_counter/maxinnerit),output_freq)==0
         disp(['k ' num2str(floor(it_counter/maxinnerit),'%3.2d') ' res ' num2str(norm(r)/normr0,'%3.3e')]);
     end    
     if norm(r)/normr0 < tol, break; end
     res = [res, norm(r)]; 
-end 
-end  
+end %Cycle loop
 
+end
